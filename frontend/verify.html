@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Verification</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div><div class="shape"></div><div class="shape"></div><div class="shape"></div><div class="shape"></div>
+    </div>
+
+    <div class="card-container">
+        <div class="card-header">
+            <h1 id="verification-title" class="card-title">Verifying...</h1>
+            <p id="verification-message" class="card-subtitle"></p>
+        </div>
+        <a href="/frontend/index.html" class="btn" style="display: none;" id="login-link">Go to Login</a>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const titleEl = document.getElementById('verification-title');
+            const messageEl = document.getElementById('verification-message');
+            const loginLink = document.getElementById('login-link');
+
+            if (!token) {
+                titleEl.textContent = 'Verification Failed';
+                messageEl.textContent = 'No verification token found.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/auth/verify-email?token=${token}`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    titleEl.textContent = 'Success!';
+                    messageEl.textContent = 'Your email has been verified. You can now log in.';
+                    loginLink.style.display = 'flex';
+                } else {
+                    const error = await response.json();
+                    titleEl.textContent = 'Verification Failed';
+                    messageEl.textContent = error.detail || 'An unknown error occurred.';
+                }
+            } catch (error) {
+                titleEl.textContent = 'Verification Failed';
+                messageEl.textContent = 'Could not connect to the server.';
+            }
+        });
+    </script>
+</body>
+</html>

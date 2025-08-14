@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome | Auth Service</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="floating-shapes">
+        <div class="shape"></div><div class="shape"></div><div class="shape"></div><div class="shape"></div><div class="shape"></div>
+    </div>
+
+    <div class="card-container">
+        <!-- Login View -->
+        <div id="login-view">
+            <div class="card-header">
+                <h1 class="card-title">Welcome Back</h1>
+                <p class="card-subtitle">Please enter your details to sign in.</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <input type="email" id="login-email" class="input-field" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="login-password" class="input-field" placeholder="Password" required>
+                </div>
+                <div class="helper-links">
+                    <button type="button" id="forgot-password-btn">Forgot Password?</button>
+                </div>
+                <p id="login-error" class="message error-msg" style="display: none;"></p>
+                <button type="submit" class="btn">
+                    <span class="btn-text">Sign In</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+            <div class="toggle-form">
+                Don't have an account? <button id="show-signup-btn">Sign Up</button>
+            </div>
+        </div>
+
+        <!-- Signup View -->
+        <div id="signup-view" style="display: none;">
+            <div class="card-header">
+                <h1 class="card-title">Create Account</h1>
+                <p class="card-subtitle">Get started with a new account.</p>
+            </div>
+            <form id="signup-form">
+                <div class="input-group">
+                    <input type="text" id="signup-name" class="input-field" placeholder="Full Name" required>
+                </div>
+                <div class="input-group">
+                    <input type="email" id="signup-email" class="input-field" placeholder="Email" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="signup-password" class="input-field" placeholder="Password" required>
+                </div>
+                <p id="signup-error" class="message error-msg" style="display: none;"></p>
+                <button type="submit" class="btn">
+                    <span class="btn-text">Sign Up</span>
+                    <div class="spinner"></div>
+                </button>
+            </form>
+            <div class="toggle-form">
+                Already have an account? <button id="show-login-btn">Sign In</button>
+            </div>
+        </div>
+
+        <div class="divider">or</div>
+
+        <div class="social-buttons">
+            <a href="http://127.0.0.1:8000/auth/login/google" class="btn social-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.089,5.571l6.19,5.238C42.022,35.241,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path></svg>
+                Google
+            </a>
+            <a href="http://127.0.0.1:8000/auth/login/github" class="btn social-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                GitHub
+            </a>
+        </div>
+    </div>
+    <script src="js/auth.js"></script>
+</body>
+</html>
