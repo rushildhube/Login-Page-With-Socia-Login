@@ -94,6 +94,8 @@ oauth.register(
     server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
     client_kwargs={"scope": "openid email profile"},
 )
+# backend/app/security.py
+
 oauth.register(
     name="github",
     client_id=settings.GITHUB_CLIENT_ID,
@@ -101,5 +103,6 @@ oauth.register(
     access_token_url="https://github.com/login/oauth/access_token",
     authorize_url="https://github.com/login/oauth/authorize",
     api_base_url="https://api.github.com/",
-    client_kwargs={"scope": "user:email"},
+    # --- FIXED: Added 'read:user' to the scope ---
+    client_kwargs={"scope": "read:user user:email"},
 )
