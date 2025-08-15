@@ -32,18 +32,37 @@ document.addEventListener('DOMContentLoaded', () => {
      * Fetches the recent login history from the /admin/login-history endpoint
      * and renders it into the login-history-container.
      */
-    const renderLoginHistory = async () => {
+
+    // frontend/js/admin.js
+
+    const renderLoginHistory = async (page = 1, limit = 25) => {
         try {
-            const response = await fetchWithAuth('/admin/login-history');
+            // Calculate the 'skip' value for the API request
+            const skip = (page - 1) * limit;
+
+            // Fetch a specific page of login history data
+            const response = await fetchWithAuth(`/admin/login-history?skip=${skip}&limit=${limit}`);
+
             if (response.ok) {
                 const history = await response.json();
-                // Create an HTML string for each login event, formatting the timestamp
+
+                if (history.length === 0 && page > 1) {
+                    loginHistoryContainer.innerHTML = "<p>No more login records.</p>";
+                    return;
+                }
+
                 let historyHtml = history.map(h => `
-                    <div class="user-info" style="border-left-color: #ffc107;">
-                        <p><strong>${h.user_email}</strong> logged in via <strong>${h.login_type}</strong> at ${new Date(h.timestamp).toLocaleString()}</p>
-                    </div>
-                `).join('');
+                <div class="user-info" style="border-left-color: #ffc107;">
+                    <p><strong>${h.user_email}</strong> logged in via <strong>${h.login_type}</strong> at ${new Date(h.timestamp).toLocaleString()}</p>
+                </div>
+            `).join('');
+
                 loginHistoryContainer.innerHTML = historyHtml;
+
+                // Note: To make this fully interactive, you would add "Next" and "Previous"
+                // buttons to your admin.html page that call renderLoginHistory(currentPage + 1)
+                // or renderLoginHistory(currentPage - 1).
+
             } else {
                 loginHistoryContainer.innerHTML = "<p>Failed to load login history.</p>";
             }

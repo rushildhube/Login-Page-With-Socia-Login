@@ -20,11 +20,18 @@ async def get_all_users():
     # Convert each user document to the public schema to avoid exposing sensitive data
     return [schemas.UserPublic(id=str(user.id), email=user.email, full_name=user.full_name, role=user.role) for user in all_users]
 
+# backend/app/routers/admin.py
+
 @router.get("/login-history", response_model=List[models.LoginHistory])
-async def get_login_history():
+async def get_login_history(skip: int = 0, limit: int = 25):
     """
-    Admin endpoint to get the 20 most recent login events.
+    Admin endpoint to get a paginated list of the most recent login events.
+    - skip: Number of records to skip (for pagination).
+    - limit: Maximum number of records to return.
     """
-    # Fetch the last 20 login records, sorted by timestamp in descending order
-    login_history = await models.LoginHistory.find().sort(-models.LoginHistory.timestamp).limit(20).to_list()
+    # Fetch a 'page' of login records, sorted by timestamp in descending order
+    login_history = await models.LoginHistory.find().sort(
+        -models.LoginHistory.timestamp
+    ).skip(skip).limit(limit).to_list()
+    
     return login_history
