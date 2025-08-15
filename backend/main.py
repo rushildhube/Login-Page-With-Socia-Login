@@ -5,7 +5,10 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from .app.security import settings
 from .app.database import init_db
-from .app.routers import auth, users
+# --- THIS IS THE CRITICAL CHANGE ---
+# Make sure 'admin' is imported from the routers.
+from .app.routers import auth, users, admin
+# --- END OF CHANGE ---
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -23,10 +26,8 @@ app = FastAPI(
 app.add_middleware(
     SessionMiddleware,
     secret_key=settings.JWT_SECRET_KEY,
-    same_site="lax",          # allows cookie on external redirect back to localhost
-    https_only=False,         # True only behind HTTPS (prod)
-    session_cookie="app_session",
-    max_age=60 * 60 * 8,      # optional
+    same_site="lax",      # allows cookie on external redirect back to localhost
+    https_only=False,     # True only behind HTTPS (prod)
 )
 
 app.add_middleware(
@@ -34,8 +35,6 @@ app.add_middleware(
     allow_origins=[
         "http://127.0.0.1:5500",
         "http://localhost:5500",
-        "http://127.0.0.1:3000",
-        "http://localhost:3000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -44,6 +43,10 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(users.router)
+# --- THIS IS THE CRITICAL CHANGE ---
+# Make sure the admin router is included in the application.
+app.include_router(admin.router)
+# --- END OF CHANGE ---
 
 @app.get("/", tags=["Root"])
 def read_root():
