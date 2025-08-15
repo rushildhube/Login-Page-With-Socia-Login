@@ -1,17 +1,26 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+# backend/app/routers/auth.py
+
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from authlib.integrations.starlette_client import OAuthError
 import secrets
 from urllib.parse import urlencode
+from datetime import datetime, timedelta
 
-from .. import crud, models, schemas, security
+# --- MODIFIED: Added email_utils import ---
+from .. import crud, models, schemas, security, email_utils
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 FRONTEND_SUCCESS_URL = security.settings.FRONTEND_SUCCESS_URL
 FRONTEND_ERROR_URL   = security.settings.FRONTEND_ERROR_URL
+
+# In-memory store for rate limiting (for production, use Redis)
+failed_attempts = {}
+RATE_LIMIT_ATTEMPTS = 5
+RATE_LIMIT_TIMEFRAME = timedelta(minutes=15)
 
 def _success_url(params: dict) -> str:
     """Helper to build the success URL with query parameters."""
@@ -31,26 +40,72 @@ def create_public_user(user: models.User) -> schemas.UserPublic:
     )
 
 @router.post("/signup", response_model=schemas.UserPublic)
-async def signup(user: schemas.UserCreate):
+async def signup(user: schemas.UserCreate, background_tasks: BackgroundTasks):
     db_user = await crud.get_user_by_email(email=user.email)
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
+    
     new_user = await crud.create_user(user=user)
+    
     verification_token = security.create_verification_token({"sub": new_user.email})
     new_user.verification_token = verification_token
     await new_user.save()
+    
     verification_link = f"http://127.0.0.1:5500/frontend/verify.html?token={verification_token}"
-    print(f"--- EMAIL VERIFICATION LINK (for testing): {verification_link} ---")
+    
+    # --- FIXED: Send email in the background instead of printing ---
+    email_subject = "Verify Your Email Address"
+    email_body = f"""
+    <h1>Welcome to Sniperthink!</h1>
+    <p>Thanks for signing up. Please click the link below to verify your email address:</p>
+    <a href="{verification_link}" style="display:inline-block; padding:10px 20px; background-color:#007bff; color:white; text-decoration:none; border-radius:5px;">Verify Email</a>
+    <p>If you did not create an account, you can safely ignore this email.</p>
+    """
+    background_tasks.add_task(
+        email_utils.send_email,
+        to_email=new_user.email,
+        subject=email_subject,
+        body=email_body
+    )
+    # --- END FIX ---
+    
     return create_public_user(new_user)
 
 @router.post("/token", response_model=schemas.TokenResponse)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+    ip_address = request.client.host
+    
+    # Rate Limiting Check
+    now = datetime.utcnow()
+    if ip_address in failed_attempts:
+        attempts = [t for t in failed_attempts[ip_address] if now - t < RATE_LIMIT_TIMEFRAME]
+        if len(attempts) >= RATE_LIMIT_ATTEMPTS:
+            raise HTTPException(status_code=429, detail="Too many failed login attempts. Please try again later.")
+        failed_attempts[ip_address] = attempts
+
     user = await crud.get_user_by_email(email=form_data.username)
     if not user or not user.hashed_password or not security.verify_password(form_data.password, user.hashed_password):
+        # Record failed attempt
+        if ip_address not in failed_attempts:
+            failed_attempts[ip_address] = []
+        failed_attempts[ip_address].append(now)
         raise HTTPException(status_code=401, detail="Incorrect email or password")
+    
     if not user.is_verified:
         raise HTTPException(status_code=400, detail="Email not verified.")
-    await crud.create_login_record(email=user.email, login_type="password")
+    
+    # Clear failed attempts on successful login
+    if ip_address in failed_attempts:
+        del failed_attempts[ip_address]
+
+    user_agent = request.headers.get("user-agent")
+    await crud.create_login_record(
+        email=user.email, 
+        login_type="password",
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+    
     access_token = security.create_access_token(data={"sub": user.email})
     refresh_token = security.create_refresh_token(data={"sub": user.email})
     user.refresh_token = refresh_token
@@ -96,7 +151,7 @@ async def verify_email(token: str):
     return {"message": "Email verified successfully."}
 
 @router.post("/forgot-password")
-async def forgot_password(email: str):
+async def forgot_password(email: str, background_tasks: BackgroundTasks):
     user = await crud.get_user_by_email(email=email)
     if user:
         password_reset_token = security.create_verification_token({"sub": user.email})
@@ -104,7 +159,23 @@ async def forgot_password(email: str):
         await user.save()
         
         reset_link = f"http://127.0.0.1:5500/frontend/reset-password.html?token={password_reset_token}"
-        print(f"--- PASSWORD RESET LINK (for testing): {reset_link} ---")
+        
+        # --- FIXED: Send email in the background instead of printing ---
+        email_subject = "Reset Your Password"
+        email_body = f"""
+        <h1>Password Reset Request</h1>
+        <p>You requested a password reset. Click the link below to set a new password:</p>
+        <a href="{reset_link}" style="display:inline-block; padding:10px 20px; background-color:#007bff; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
+        <p>This link will expire in 1 hour.</p>
+        <p>If you did not request a password reset, please ignore this email.</p>
+        """
+        background_tasks.add_task(
+            email_utils.send_email,
+            to_email=user.email,
+            subject=email_subject,
+            body=email_body
+        )
+        # --- END FIX ---
         
     return {"message": "If an account with that email exists, a password reset link has been sent."}
 
@@ -128,6 +199,7 @@ async def reset_password(token: str, new_password: str):
     
     return {"message": "Password has been reset successfully."}
 
+# --- Social Login Routes (Unchanged) ---
 @router.get("/login/{provider}")
 async def social_login(request: Request, provider: str):
     state = secrets.token_urlsafe(32)
@@ -168,7 +240,15 @@ async def auth_callback(request: Request, provider: str):
         user = await crud.create_social_user(email=user_email, name=name)
     
     user.is_verified = True
-    await crud.create_login_record(email=user.email, login_type=provider)
+    
+    ip_address = request.client.host
+    user_agent = request.headers.get("user-agent")
+    await crud.create_login_record(
+        email=user.email, 
+        login_type=provider,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
 
     access_token = security.create_access_token({"sub": user.email})
     refresh_token = security.create_refresh_token({"sub": user.email})

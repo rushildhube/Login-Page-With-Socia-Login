@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/python-3.11-blue.svg) ![FastAPI](https://img.shields.io/badge/FastAPI-0.103-green.svg) ![MongoDB](https://img.shields.io/badge/MongoDB-7.0-brightgreen.svg) ![JWT](https://img.shields.io/badge/Auth-JWT-orange.svg)
 
-This project is a complete, full-stack authentication system built to be secure, scalable, and easy to integrate. It provides a robust backend API using FastAPI and a clean, responsive frontend using vanilla HTML, CSS, and JavaScript. The service supports traditional email/password registration, social logins (Google & GitHub), and includes advanced features like refresh tokens and role-based access control.
+This project is a complete, full-stack authentication system built to be secure, scalable, and easy to integrate. It provides a robust backend API using FastAPI and a clean, responsive frontend using vanilla HTML, CSS, and JavaScript. The service supports traditional email/password registration, social logins (Google & GitHub), and includes advanced features like refresh tokens, role-based access control, email verification, and password resets.
 
 ---
 
@@ -10,124 +10,72 @@ This project is a complete, full-stack authentication system built to be secure,
 
 The application follows a classic client-server architecture with a decoupled frontend and backend. The authentication flow involves communication with third-party OAuth providers.
 
-```
-+-----------------+      (1) Login Request      +-----------------+      (4) DB Query      +-----------------+
-|                 | --------------------------> |                 | ---------------------> |                 |
-|    Frontend     |      (HTML, CSS, JS)      |     Backend     |     (FastAPI)      |     Database    |
-| (User Browser)  | <-------------------------- |      (API)      | <--------------------- |    (MongoDB)    |
-|                 |   (2) JWT Access/Refresh    |                 |    (5) User Data     |                 |
-+-----------------+                             +--------+--------+                      +-----------------+
-        ^                                                | (3) Redirect
-        | (6) Protected                                  | & Callback
-        |     Resource Request                           v
-        v                                        +-----------------+
-+-----------------+                              |                 |
-| API Wrapper     |                              |  OAuth Provider |
-| (api.js)        |                              | (Google/GitHub) |
-| - Auto Token    |                              |                 |
-|   Refresh       |                              +-----------------+
-+-----------------+
-
-```
-
-**Flow Description:**
-1.  **Login:** The user initiates a login/signup from the **Frontend**.
-2.  **Token Issuance:** The **Backend** validates the request, queries the **Database**, and returns JWT Access and Refresh tokens.
-3.  **Social Login:** For social logins, the user is redirected from the **Backend** to the **OAuth Provider**. After authorization, the provider calls back to the backend, which then issues tokens.
-4.  **Database Interaction:** The backend communicates with the **MongoDB** database for all user data operations (create, read, update).
-5.  **API Requests:** The frontend uses the Access Token to request protected data (like user profiles).
-6.  **Auto-Refresh:** The `api.js` wrapper on the frontend intercepts API calls. If an Access Token is expired (401 Unauthorized), it silently uses the Refresh Token to get a new one before retrying the original request.
+![alt text](<resources/Untitled diagram _ Mermaid Chart-2025-08-15-075905.png>)
 
 ---
 
 ## ✨ Features
 
--   **Custom UI:** A simple and clean user interface for login and signup forms.
+-   **Modern UI:** A clean, responsive, and user-friendly "glassmorphism" interface.
 -   **Secure Email/Password Authentication:**
     -   Password hashing using industry-standard `bcrypt`.
-    -   User registration, login, and logout functionality.
+    -   **Email Verification:** New users are sent a verification email and cannot log in until their email is confirmed.
+    -   **Password Reset:** A secure "Forgot Password" flow that sends a time-limited reset link via email.
 -   **Social Logins:**
-    -   Seamless, one-click authentication with Google.
-    -   Seamless, one-click authentication with GitHub.
+    -   Seamless, one-click authentication with Google and GitHub.
 -   **Advanced Token-Based Security:**
     -   **JWT Access Tokens:** Short-lived (30 min) JWTs for accessing protected resources.
-    -   **Refresh Tokens:** Long-lived (7 days) refresh tokens for a smooth user experience without frequent logins.
+    -   **Refresh Tokens:** Long-lived (7 days) refresh tokens for a smooth user experience.
     -   Automatic token refresh handling on the frontend.
 -   **Role-Based Access Control (RBAC):**
     -   `user` and `admin` roles are supported.
-    -   Protected API endpoints that can only be accessed by users with the 'admin' role.
-    -   Conditional UI rendering on the frontend based on the user's role.
--   **NoSQL Database:**
-    -   Flexible and scalable data storage using MongoDB.
-    -   Asynchronous database operations with Beanie ODM for high performance.
--   **Comprehensive API:**
-    -   Well-defined API endpoints for all authentication-related actions.
-    -   Interactive API documentation available at `/docs` (via Swagger UI).
-
----
-
-## 🛠️ Tech Stack & Architectural Choices
-
-This project uses a modern technology stack chosen for performance, security, and developer experience.
-
-| Category      | Technology                                                              | Rationale                                                                                                                              |
-| :------------ | :---------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------- |
-| **Backend** | [**FastAPI**](https://fastapi.tiangolo.com/)                            | A high-performance Python framework that leverages `async`/`await` for non-blocking I/O, perfect for building scalable APIs.          |
-| **Database** | [**MongoDB**](https://www.mongodb.com/)                                 | A leading NoSQL database chosen for its flexible document model and horizontal scalability, ideal for user profile data.               |
-| **ODM** | [**Beanie**](https://github.com/roman-right/beanie)                     | An asynchronous Object-Document Mapper that integrates seamlessly with FastAPI and Pydantic, simplifying database interactions.     |
-| **Auth** | [**JWT**](https://jwt.io/) & [**OAuth 2.0**](https://oauth.net/2/)        | Standard protocols for token-based authentication and delegated authorization, ensuring secure and interoperable access control.     |
-| **Frontend** | **Vanilla HTML, CSS, JS** | Chosen to keep the focus on the authentication logic without the overhead of a large framework, ensuring maximum compatibility.      |
-| **Libraries** | `passlib`, `python-jose`, `authlib`                                     | Best-in-class libraries for handling password hashing, JWT encoding/decoding, and OAuth 2.0 client flows respectively.             |
-
----
-
-## 🧠 Tech Stack to Learn
-
-To fully understand and contribute to this project, you should be familiar with the following technologies and concepts.
-
-| Area       | Technology / Concept                                                    | Key Topics to Focus On                                                                                                    |
-| :--------- | :---------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
-| **Backend** | [**Python**](https://www.python.org/)                                   | Fundamentals of `async`/`await` for asynchronous programming, and managing packages with `pip` and `venv`.                |
-|            | [**FastAPI**](https://fastapi.tiangolo.com/)                            | Creating routes (`@router.post`), using Dependency Injection (`Depends`), and working with Pydantic for data validation.    |
-| **Frontend** | **HTML & CSS** | Structuring web pages with HTML5 and applying modern styling with CSS, including Flexbox for layout.                  |
-|            | [**JavaScript (ES6+)**](https://developer.mozilla.org/en-US/docs/Web/JavaScript) | DOM manipulation, making API calls with `fetch`, handling Promises with `async`/`await`, and using `localStorage`. |
-| **Database** | [**MongoDB**](https://www.mongodb.com/basics)                           | Understanding the basics of NoSQL, including documents, collections, and how to perform basic queries.                     |
-|            | [**Beanie ODM**](https://beanie-odm.dev/)                               | Defining `Document` models that map to MongoDB collections and using its async methods for database operations.       |
-| **Concepts** | **REST APIs** | Principles of REST, including HTTP methods (GET, POST), status codes (200, 401, 403), and using JSON for data transfer. |
-|            | **JWT & OAuth 2.0** | The structure of a JWT (Header, Payload, Signature) and the high-level flow of OAuth 2.0 for social logins.           |
+    -   Protected API endpoints that can only be accessed by administrators.
+-   **Admin Dashboard:**
+    -   A dedicated, protected dashboard for administrators.
+    -   View a list of all registered users in the system.
+    -   Track recent login activity, including IP address and browser information.
+-   **Security Hardening:**
+    -   **Rate Limiting:** Protects against brute-force attacks by temporarily blocking IPs with too many failed login attempts.
+    -   **CSRF Protection:** Robust `state` validation in the OAuth flow to prevent cross-site request forgery.
 
 ---
 
 ## 📂 Project Structure Explained
 
-The project is organized into two main directories: `backend` and `frontend`, ensuring a clean separation of concerns.
+The project is organized into `backend` and `frontend` directories, ensuring a clean separation of concerns.
 
 ```
-custom-login-project/
-├── backend/
-│   ├── app/
-│   │   ├── crud.py         # Defines functions that directly interact with the database (Create, Read, Update).
-│   │   ├── database.py     # Handles the MongoDB connection and initializes the Beanie ODM.
-│   │   ├── models.py       # Defines the database collection schemas (e.g., the User document and its fields/types).
-│   │   ├── schemas.py      # Defines the Pydantic models for API data shapes (request bodies and response models).
-│   │   ├── security.py     # Contains all authentication logic: password hashing, JWT creation, OAuth client setup, and RBAC dependencies.
-│   │   └── routers/
-│   │       ├── auth.py     # Contains API endpoints for authentication, like /signup, /token, /refresh, and social login callbacks.
-│   │       └── users.py    # Contains API endpoints for user management, like fetching profiles or admin-only user lists.
-│   ├── .env                # (CRITICAL) Stores all secrets: DB URIs, JWT secret key, and OAuth credentials. Ignored by Git.
-│   ├── main.py             # The entry point for the FastAPI application. It sets up middleware (CORS) and includes the API routers.
-│   └── requirements.txt    # Lists all Python dependencies for the backend.
-│
-├── frontend/
-│   ├── js/
-│   │   ├── api.js          # A crucial API wrapper for `fetch()` that automatically handles JWT access token refreshing.
-│   │   ├── auth.js         # Contains the JavaScript logic for the login/signup page (index.html).
-│   │   └── dashboard.js    # Contains the JavaScript logic for the user dashboard, including fetching user data and rendering admin views.
-│   ├── css/style.css       # Custom styling for the frontend pages.
-│   ├── index.html          # The main login and signup page.
-│   └── dashboard.html      # The protected page shown to logged-in users.
-│
-└── README.md               # You are here!
+/custom-login-project/
+|-- backend/
+|   |-- app/
+|   |   |-- routers/
+|   |   |   |-- auth.py         # Handles all authentication endpoints (login, signup, social, reset).
+|   |   |   |-- users.py        # Handles general user endpoints (e.g., getting a profile).
+|   |   |   `-- admin.py        # Handles protected, admin-only endpoints.
+|   |   |-- crud.py           # Contains all database interaction functions (Create, Read, Update).
+|   |   |-- database.py       # Handles the MongoDB connection and Beanie initialization.
+|   |   |-- email_utils.py    # Contains the utility function for sending SMTP emails.
+|   |   |-- models.py         # Defines the database schemas (User, LoginHistory).
+|   |   |-- schemas.py        # Defines the Pydantic models for API data validation.
+|   |   `-- security.py       # Contains all security logic (hashing, JWTs, OAuth, RBAC).
+|   |-- .env                  # (CRITICAL) Stores all secret credentials.
+|   |-- main.py               # The FastAPI application entry point.
+|   `-- requirements.txt      # Lists all Python dependencies.
+|
+|-- frontend/
+|   |-- css/style.css         # The single stylesheet for the entire application.
+|   |-- js/
+|   |   |-- api.js            # A crucial API wrapper that handles auto token refreshing.
+|   |   |-- auth.js           # Logic for the main login/signup page.
+|   |   |-- dashboard.js      # Logic for the standard user dashboard.
+|   |   `-- admin.js          # Logic for the admin dashboard.
+|   |-- index.html            # The main login and signup page.
+|   |-- dashboard.html        # The protected page for logged-in users.
+|   |-- admin.html            # The protected page for administrators.
+|   |-- verify.html           # Page for handling email verification.
+|   `-- reset-password.html   # Page for handling password resets.
+|
+`-- README.md                 # You are here!
 ```
 
 ---
@@ -140,9 +88,9 @@ Follow these steps carefully to get the project running locally.
 
 -   **Python 3.8+**
 -   **Git**
--   A running **MongoDB** instance.
-    -   *Recommendation:* Get a free cluster from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register).
--   A code editor like [VS Code](https://code.visualstudio.com/) with the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension for the frontend.
+-   A running **MongoDB** instance (e.g., from [MongoDB Atlas](https://www.mongodb.com/cloud/atlas/register)).
+-   An **Email Account** that supports SMTP (e.g., Gmail with an "App Password").
+-   A code editor like [VS Code](https://code.visualstudio.com/) with the [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) extension.
 
 ### 2. Clone the Repository
 
@@ -155,11 +103,9 @@ cd custom-login-project
 
 #### Step 3.1: Set Up Virtual Environment & Install Dependencies
 
-Navigate to the backend directory, create a virtual environment, and install the required packages.
+Navigate to the **project root** directory.
 
 ```bash
-cd backend
-
 # Create a virtual environment
 python -m venv venv
 
@@ -169,34 +115,20 @@ source venv/bin/activate
 # On Windows:
 venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install all dependencies
+pip install -r backend/requirements.txt
 ```
 
 #### Step 3.2: Obtain Credentials
 
-This is the most critical step. You need API keys and secrets for MongoDB, Google, and GitHub.
+You need API keys and secrets for MongoDB, Google, GitHub, and your email provider.
 
--   **MongoDB Connection String:**
-    1.  Go to your MongoDB Atlas dashboard.
-    2.  Click `Database` -> `Connect` -> `Drivers`.
-    3.  Copy the **Connection String** (URI). It will look like `mongodb+srv://<user>:<password>@...`.
-
--   **Google OAuth Credentials:**
-    1.  Go to the [Google Cloud Console Credentials Page](https://console.cloud.google.com/apis/credentials).
-    2.  Create a new project if you don't have one.
-    3.  Click `+ CREATE CREDENTIALS` -> `OAuth client ID`.
-    4.  Select `Web application` for the Application type.
-    5.  Under `Authorized redirect URIs`, add: `http://127.0.0.1:8000/auth/callback/google`
-    6.  Click `Create`. Copy the **Client ID** and **Client Secret**.
-
--   **GitHub OAuth Credentials:**
-    1.  Go to your GitHub `Settings` -> `Developer settings` -> `OAuth Apps` -> `New OAuth App`.
-    2.  **Application name:** `My FastAPI Auth App` (or anything)
-    3.  **Homepage URL:** `http://127.0.0.1:8000`
-    4.  **Authorization callback URL:** `http://127.0.0.1:8000/auth/callback/github`
-    5.  Click `Register application`.
-    6.  Click `Generate a new client secret`. Copy the **Client ID** and the new **Client Secret**.
+-   **MongoDB:** Get your **Connection String (URI)** from your Atlas dashboard.
+-   **Google OAuth:** Get your **Client ID** and **Client Secret** from the [Google Cloud Console](https://console.cloud.google.com/apis/credentials).
+    -   *Authorized redirect URI:* `http://127.0.0.1:8000/auth/callback/google`
+-   **GitHub OAuth:** Get your **Client ID** and **Client Secret** from your GitHub Developer Settings.
+    -   *Authorization callback URL:* `http://127.0.0.1:8000/auth/callback/github`
+-   **Email SMTP:** Get your SMTP server details. For Gmail, you must generate an **"App Password"** from your Google Account's security settings.
 
 #### Step 3.3: Configure Environment Variables
 
@@ -205,41 +137,57 @@ Create a file named `.env` inside the `backend/` directory. Copy the content bel
 ```ini
 # backend/.env
 
-# A long, random, and secret string for signing JWTs
-JWT_SECRET_KEY=generate_a_strong_random_secret_string_here
+# A long, random, and secret string for signing JWTs (at least 32 characters)
+JWT_SECRET_KEY=your_super_secret_random_string_here
 
-# Paste your MongoDB Atlas connection string
+# Your MongoDB Atlas connection string (including the database name)
 MONGO_URI=mongodb+srv://<user>:<password>@<cluster-url>/<db-name>?retryWrites=true&w=majority
 
-# Paste your Google credentials
+# Your Google credentials
 GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-# Paste your GitHub credentials
+# Your GitHub credentials
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
+
+# Your Email SMTP credentials
+SMTP_SERVER=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=your_email@gmail.com
+SMTP_PASSWORD=your_gmail_app_password
 ```
 
 ### 4. Run the Application
 
 #### Step 4.1: Start the Backend Server
 
-Ensure you are in the `backend/` directory with your virtual environment activated.
+Ensure you are in the **project root directory** with your virtual environment activated.
 
 ```bash
-uvicorn main:app --reload
+uvicorn backend.main:app --reload
 ```
 
-The API server is now running at `http://127.0.0.1:8000`. You can access the interactive documentation at `http://127.0.0.1:8000/docs`.
+The API server is now running at `http://127.0.0.1:8000`.
 
 #### Step 4.2: Launch the Frontend
 
 1.  Open the project folder in VS Code.
-2.  Navigate to `frontend/index.html`.
-3.  Right-click the file and select `Open with Live Server`.
-4.  Your browser will open to the login page, typically at `http://127.0.0.1:5500`.
+2.  Right-click the `frontend/index.html` file and select `Open with Live Server`.
+3.  Your browser will open to the login page, typically at `http://127.0.0.1:5500`.
 
-You can now register, log in, and test the social login flows!
+---
+
+## 👑 How to Log In as an Admin
+
+1.  **Sign Up:** Create a regular user account through the application.
+2.  **Verify Email:** Click the verification link sent to your email.
+3.  **Promote in Database:**
+    -   Log in to your MongoDB Atlas dashboard and navigate to the `users` collection.
+    -   Find the user you just created and **Edit** the document.
+    -   Change the `role` field's value from `"user"` to `"admin"`.
+    -   Click **Update** to save.
+4.  **Log In Again:** Go back to the application and log in with your newly promoted admin account. You will now see the "Admin Tools" on your dashboard.
 
 ---
 
@@ -263,13 +211,17 @@ This application uses a standard and secure token-based authentication mechanism
 
 | Endpoint                     | Method | Description                                                | Permissions |
 | :--------------------------- | :----- | :--------------------------------------------------------- | :---------- |
-| `/auth/signup`               | `POST` | Register a new user with email and password.               | Public      |
+| `/auth/signup`               | `POST` | Register a new user and sends a verification email.        | Public      |
 | `/auth/token`                | `POST` | Log in with email/password to get access/refresh tokens.   | Public      |
 | `/auth/login/{provider}`     | `GET`  | Initiates the social login flow for Google or GitHub.      | Public      |
 | `/auth/callback/{provider}`  | `GET`  | Callback URL for the social login provider to redirect to. | Public      |
 | `/auth/refresh`              | `POST` | Exchange a valid refresh token for a new access token.     | Public      |
+| `/auth/verify-email`         | `POST` | Verifies a user's email using a token from the link.       | Public      |
+| `/auth/forgot-password`      | `POST` | Sends a password reset link to the user's email.           | Public      |
+| `/auth/reset-password`       | `POST` | Resets the user's password using a token from the link.    | Public      |
 | `/users/me`                  | `GET`  | Get the profile details of the currently logged-in user.   | User        |
-| `/users/all`                 | `GET`  | Get a list of all users in the database.                   | **Admin** |
+| `/admin/users`               | `GET`  | Get a list of all users in the database.                   | **Admin** |
+| `/admin/login-history`       | `GET`  | Get the 20 most recent login events.                       | **Admin** |
 
 ---
 
@@ -291,13 +243,10 @@ To move this project from a local development setup to a live production environ
     -   **WSGI Server:** Use a production-grade server like **Gunicorn** or **Uvicorn with workers** to run the FastAPI application instead of the development server.
     -   **Containerization:** Package the backend application into a **Docker** container for portability and easy scaling.
     -   **Hosting:** Deploy the container to a cloud service like **AWS (ECS/Fargate), Google Cloud Run, or Heroku**.
-
 2.  **Frontend Deployment:**
     -   **Static Hosting:** The frontend is a static site. It can be hosted cheaply and efficiently on services like **Vercel, Netlify, AWS S3, or GitHub Pages**.
-
 3.  **Database:**
     -   Use a managed database service like **MongoDB Atlas** for production. It handles backups, scaling, and security for you.
-
 4.  **Environment Variables:**
     -   In a production environment, do not use a `.env` file. Use the secret management system provided by your cloud host (e.g., AWS Secrets Manager, Google Secret Manager) to inject environment variables securely.
 
@@ -308,13 +257,5 @@ To move this project from a local development setup to a live production environ
 This project provides a solid foundation. Here are some features that could be added to enhance it further:
 
 -   **Two-Factor Authentication (2FA):** Add an extra layer of security using TOTP (e.g., Google Authenticator) or SMS verification.
--   **Password Reset Flow:** Implement a "Forgot Password" feature that sends a secure, time-limited link to the user's email.
--   **Email Verification:** Require users to verify their email address after signing up by clicking a link sent to them.
--   **More Social Providers:** Integrate other OAuth providers like Facebook, Twitter, or LinkedIn.
 -   **Comprehensive Logging:** Add structured logging to track important events, errors, and security-related activities for easier debugging and monitoring.
--   **Rate Limiting:** Protect against brute-force attacks by implementing rate limiting on login and password reset endpoints.
-
----
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+-   **More Social Providers:** Integrate other OAuth providers like Facebook, Twitter, or LinkedIn.

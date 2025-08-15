@@ -21,6 +21,13 @@ class Settings(BaseSettings):
     FRONTEND_SUCCESS_URL: str = "http://127.0.0.1:5500/frontend/dashboard.html"
     FRONTEND_ERROR_URL: str   = "http://127.0.0.1:5500/frontend/index.html"
     
+    # --- NEW: Email Settings ---
+    SMTP_SERVER: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str
+    SMTP_PASSWORD: str
+    # --- END NEW ---
+    
     class Config:
         env_file = env_path
 

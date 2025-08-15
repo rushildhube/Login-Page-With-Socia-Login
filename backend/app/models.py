@@ -20,7 +20,6 @@ class User(Document):
     class Settings:
         name = "users"
 
-# --- NEW MODEL FOR ADMIN DASHBOARD ---
 class LoginHistory(Document):
     """
     Represents a login event in the database.
@@ -28,8 +27,11 @@ class LoginHistory(Document):
     """
     user_email: Indexed(EmailStr)
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    login_type: str # e.g., "password", "google", "github"
+    login_type: str
+    # --- NEW FIELDS ---
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    # --- END NEW FIELDS ---
 
     class Settings:
         name = "login_history"
-# --- END NEW MODEL ---
