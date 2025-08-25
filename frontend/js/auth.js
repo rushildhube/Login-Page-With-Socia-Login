@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (response.ok) {
-                alert('Signup successful! A verification link has been sent (check your backend terminal).');
+                alert('Signup successful! A verification link has been sent.');
                 showLoginBtn.click();
             } else {
                 const error = await response.json();
